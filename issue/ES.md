@@ -233,7 +233,7 @@ Kafka是一个消息处理引擎，这里采用Kafka作为日志数据的缓冲�
 3.2、过滤清洗和转发
 Logstash 是一个日志收集和处理引擎，它带有各种各样的插件，能够从各种来源摄取数据。并且可以对数据进行转换，然后转发到目的地。我这里采用Logstash作为日志摄取、过滤、清洗、转发的工具。
 这是一个大概的Logstash Conf文件，文件的内容分3块：input 、filter 、output。
-
+``` yml
 input {
     kafka {
         bootstrap_servers=>"172.10.7.79:9092"
@@ -273,8 +273,9 @@ output{
                 index => "%{appName}‐%{+YYYY.MM.dd}"
  
         }
-}一键获取完整项目代码go
-3.3、存储和搜索
+}
+```
+3、存储和搜索
 Elasticsearch是一个可扩展的搜索引擎，这里采用Elasticsearch作为日志存储搜索工具。
 3.4、展示
 采用Kibana为日志构建可视化的UI。
