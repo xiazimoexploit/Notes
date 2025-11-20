@@ -38,7 +38,7 @@ Filebeat的主要优势有：
 
 日志采集工具选型确定之后，接下来就是如何采集了。
 K8S部署的场景下，想要收集每台Node下的容器日志，需要采用Deamonset控制器自动部署，这样每次新增节点时，会自动部署Filebeat的Pod。每台Node自动安装好Filebeat后，每台Node上的日志会被自动采集，然后输出到Kafka。
-** Filebeat大致的编排yaml如下：**
+**Filebeat大致的编排yaml如下：**
 ``` yml
 filebeat-fixed-complete.yaml
 apiVersion: v1
