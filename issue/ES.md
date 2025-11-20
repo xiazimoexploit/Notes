@@ -1,32 +1,29 @@
+## ES介绍
 下面介绍Kubernetes场景下基于ELK的日志解决方案。整体思路：Filebeat -> Kafka -> Logstash -> Elasticsearch -> Kibana。
-1、日志数据流转
+### 1、日志数据流转
 日志数据流转见下图：
 ![alt text](images/es/1.png)
-2、日志采集
-2.1、容器日志在哪儿
+### 2、日志采集
+#### 2.1、容器日志在哪儿
 首先得有个概念：容器只是K8S集群Node上的一个进程。要在K8S集群机器上找到此Docker进程，然后进入到对应的文件夹里查看日志文件。
 一般情况下，容器的日志存放在宿主机上的这个目录下/var/lib/docker/containers/：
-# 日志在宿主机的这个文件夹下
+日志在宿主机的这个文件夹下
 cd /var/lib/docker/containers
-# 用这个命令可以查找对应的日志文件
+ 用这个命令可以查找对应的日志文件
 find /var/lib/docker/containers -name "*-json.log"
 进入到/var/lib/docker/containers/下，看到的是一堆毫无规律的文件夹。
 
-
 看到这些毫无规律的文件夹名称，会一下子有点懵，但是仔细看看，其实这些码是对应的Docker容器的id。继续通过名称查看容器id。
-# docker命令查看容器
+docker命令查看容器
 docker ps -a
 
-
 找到了容器id之后，可以看到用容器id的前几位，可以完全匹配到，日志文件夹名称的前几位。docker ps 显示的容器id只是显示了整个id的前几位。
-
- 
 
 进入到日志文件夹后，就可以看到具体的json日志文件了。
 
 至此已经知道日志文件存放的位置了。当然啦，要控制好日志级别，还要做好日志清理任务，否则大量的日志会导致磁盘空间不够。Pod销毁之后，日志文件也会被销毁的。
 文件找到了接下来，就看怎么采集日志了。
-2.2、日志采集工具
+#### 2.2、日志采集工具
 日志采集工具有多种，本文采用Filebeat作为日志采集工具。
 Filebeat是用于转发和汇总日志与文件的轻量级传送程序。作为服务器上的代理安装，Filebeat会监视你指定的日志文件或位置。然后收集日志事件，并将它们转发到Elasticsearch或Logstash或Kafka。官方文档显示的工作流程如下：
 
@@ -35,14 +32,15 @@ Filebeat的主要优势有：
 - 免费开源
 - 资源使用率低
 - 良好的性能
-2.3、日志如何采集（区分log日志和pod日志，显示K8S 名字）
+#### 2.3、日志如何采集（区分log日志和pod日志，显示K8S 名字）
 两个集群加入同一个es里面需要注意优先级
 只需给集群 2 的模板设置更高优先级，让 ES 优先匹配它，冲突即可解决：
 
 日志采集工具选型确定之后，接下来就是如何采集了。
 K8S部署的场景下，想要收集每台Node下的容器日志，需要采用Deamonset控制器自动部署，这样每次新增节点时，会自动部署Filebeat的Pod。每台Node自动安装好Filebeat后，每台Node上的日志会被自动采集，然后输出到Kafka。
-Filebeat大致的编排yaml如下：
-# filebeat-fixed-complete.yaml
+** Filebeat大致的编排yaml如下：**
+``` yml
+filebeat-fixed-complete.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -223,6 +221,7 @@ spec:
           path: /data/docker/containers
       tolerations:
       - operator: Exists
+```
 3、日志缓冲、过滤清洗、存储、展示
 3.1、缓冲
 Kafka是一个消息处理引擎，这里采用Kafka作为日志数据的缓冲工具。采用Kafka有2个用途：
