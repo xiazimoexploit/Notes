@@ -6,21 +6,23 @@
 ### 2、日志采集
 #### 2.1、容器日志在哪儿
 首先得有个概念：容器只是K8S集群Node上的一个进程。要在K8S集群机器上找到此Docker进程，然后进入到对应的文件夹里查看日志文件。
-一般情况下，容器的日志存放在宿主机上的这个目录下/var/lib/docker/containers/：
+一般情况下，容器的日志存放在宿主机上的这个目录下 /var/lib/docker/containers/：
+``` shell
 日志在宿主机的这个文件夹下
 cd /var/lib/docker/containers
  用这个命令可以查找对应的日志文件
 find /var/lib/docker/containers -name "*-json.log"
+```
 进入到/var/lib/docker/containers/下，看到的是一堆毫无规律的文件夹。
-
+![alt text](/images/es/2.png)
 看到这些毫无规律的文件夹名称，会一下子有点懵，但是仔细看看，其实这些码是对应的Docker容器的id。继续通过名称查看容器id。
-docker命令查看容器
-docker ps -a
+
+**docker ps -a**
 
 找到了容器id之后，可以看到用容器id的前几位，可以完全匹配到，日志文件夹名称的前几位。docker ps 显示的容器id只是显示了整个id的前几位。
-
+![alt text](images/es/image.png)
 进入到日志文件夹后，就可以看到具体的json日志文件了。
-
+![alt text](images/es/image-1.png)
 至此已经知道日志文件存放的位置了。当然啦，要控制好日志级别，还要做好日志清理任务，否则大量的日志会导致磁盘空间不够。Pod销毁之后，日志文件也会被销毁的。
 文件找到了接下来，就看怎么采集日志了。
 #### 2.2、日志采集工具
@@ -278,9 +280,5 @@ Elasticsearch是一个可扩展的搜索引擎，这里采用Elasticsearch作为
 采用Kibana为日志构建可视化的UI。
 4、总结
 本文主要介绍Kubernetes场景下比较接地气好落地的，基于ELK的日志解决方案。整体思路：Filebeat -> Kafka -> Logstash -> Elasticsearch -> Kibana。
-本文没有介绍Kafka、Logstash、Elasticsearch、Kibana的安装，只提及了一些配置文件，安装过程读者自行查阅资料搭建。
-本文转载自：「不焦躁的程序员」，原文：https://url.hi-linux.com/Eh68Q，版权归原作者所有。欢迎投稿，投稿邮箱: editor@hi-linux.co
-
-
 
 
